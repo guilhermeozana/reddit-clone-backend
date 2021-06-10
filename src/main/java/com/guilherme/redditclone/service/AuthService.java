@@ -6,6 +6,7 @@ import java.util.UUID;
 import javax.transaction.Transactional;
 
 import com.guilherme.redditclone.dto.RegisterRequest;
+import com.guilherme.redditclone.exception.SpringRedditException;
 import com.guilherme.redditclone.model.NotificationEmail;
 import com.guilherme.redditclone.model.User;
 import com.guilherme.redditclone.model.VerificationToken;
@@ -59,5 +60,24 @@ public class AuthService {
 
             verificationTokenRepository.save(verificationToken);
         return token;
+    }
+
+    public void verifyAccount(String token) {
+        VerificationToken verificationToken = verificationTokenRepository.findByToken(token).orElseThrow(() ->
+            new SpringRedditException("Invalid Token"));
+
+        fetchUserAndEnable(verificationToken);
+    }
+
+    @Transactional
+    private void fetchUserAndEnable(VerificationToken verificationToken) {
+        String username = verificationToken.getUser().getUsername();
+        
+        User user = userRepository.findByUsername(username).orElseThrow(() ->
+        new SpringRedditException("Invalid User"));
+
+        user.setEnabled(true);
+
+        userRepository.save(user);
     }
 }
