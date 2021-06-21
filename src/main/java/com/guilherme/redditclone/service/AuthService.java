@@ -5,6 +5,8 @@ import java.util.UUID;
 
 import javax.transaction.Transactional;
 
+import com.guilherme.redditclone.dto.AuthenticationResponse;
+import com.guilherme.redditclone.dto.LoginRequest;
 import com.guilherme.redditclone.dto.RegisterRequest;
 import com.guilherme.redditclone.exception.SpringRedditException;
 import com.guilherme.redditclone.model.NotificationEmail;
@@ -12,8 +14,13 @@ import com.guilherme.redditclone.model.User;
 import com.guilherme.redditclone.model.VerificationToken;
 import com.guilherme.redditclone.repository.UserRepository;
 import com.guilherme.redditclone.repository.VerificationTokenRepository;
+import com.guilherme.redditclone.security.JwtProvider;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -27,6 +34,8 @@ public class AuthService {
     private final UserRepository userRepository;
     private final VerificationTokenRepository verificationTokenRepository;
     private final MailService mailService;
+    private final AuthenticationManager authenticationManager;
+    private final JwtProvider jwtProvider;
     
     @Transactional
     public void signup(RegisterRequest registerRequest){
@@ -79,5 +88,18 @@ public class AuthService {
         user.setEnabled(true);
 
         userRepository.save(user);
+    }
+
+    public AuthenticationResponse login(LoginRequest loginRequest) {
+        Authentication authenticate = authenticationManager.authenticate(
+            new UsernamePasswordAuthenticationToken(loginRequest.getUsername(),loginRequest.getPassword()));
+        SecurityContextHolder.getContext().setAuthentication(authenticate);
+
+        String token = jwtProvider.generateToken(authenticate);
+            
+        return AuthenticationResponse.builder()
+                .authenticationToken(token)
+                .username(loginRequest.getUsername())
+                .build();
     }
 }

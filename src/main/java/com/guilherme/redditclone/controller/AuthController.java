@@ -5,6 +5,8 @@ import org.springframework.web.bind.annotation.RestController;
 
 import lombok.RequiredArgsConstructor;
 
+import com.guilherme.redditclone.dto.AuthenticationResponse;
+import com.guilherme.redditclone.dto.LoginRequest;
 import com.guilherme.redditclone.dto.RegisterRequest;
 import com.guilherme.redditclone.service.AuthService;
 
@@ -32,6 +34,11 @@ public class AuthController {
     public ResponseEntity<String> verifyAccount(@PathVariable String token){
         authService.verifyAccount(token);
         return new ResponseEntity<String>("Account Activated Successfully", HttpStatus.OK);
+    }
+
+    @PostMapping("/login")
+    public ResponseEntity<AuthenticationResponse> login(@RequestBody LoginRequest loginRequest){
+        return new ResponseEntity<AuthenticationResponse>(authService.login(loginRequest), HttpStatus.OK);
     }
     
     
