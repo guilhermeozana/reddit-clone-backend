@@ -3,12 +3,10 @@ package com.guilherme.redditclone.service;
 import java.time.Instant;
 import java.util.UUID;
 
-import javax.transaction.Transactional;
-
 import com.guilherme.redditclone.dto.AuthenticationResponse;
 import com.guilherme.redditclone.dto.LoginRequest;
 import com.guilherme.redditclone.dto.RegisterRequest;
-import com.guilherme.redditclone.exception.SpringRedditException;
+import com.guilherme.redditclone.exception.RedditCloneException;
 import com.guilherme.redditclone.model.NotificationEmail;
 import com.guilherme.redditclone.model.User;
 import com.guilherme.redditclone.model.VerificationToken;
@@ -23,6 +21,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import lombok.RequiredArgsConstructor;
 
@@ -54,9 +53,8 @@ public class AuthService {
         mailService.sendMail(NotificationEmail.builder()
                         .subject("Please, activate your account")
                         .recipient(user.getEmail())
-                        .body("Thank you for signing up to Reddit Clone, "+
-                            "please click on the below url to activate your account: "+
-                            "http://localhost:8080/api/auth/accountVerification/"+ token)
+                        .body("Thank you for signing up to Reddit Clone, please click on the below url to activate"
+                                +" your account: http://localhost:8080/api/auth/accountVerification/"+ token)
                         .build());
     }
 
@@ -73,7 +71,7 @@ public class AuthService {
 
     public void verifyAccount(String token) {
         VerificationToken verificationToken = verificationTokenRepository.findByToken(token).orElseThrow(() ->
-            new SpringRedditException("Invalid Token"));
+            new RedditCloneException("Invalid Token"));
 
         fetchUserAndEnable(verificationToken);
     }
@@ -83,7 +81,7 @@ public class AuthService {
         String username = verificationToken.getUser().getUsername();
         
         User user = userRepository.findByUsername(username).orElseThrow(() ->
-        new SpringRedditException("Invalid User"));
+        new RedditCloneException("Invalid User"));
 
         user.setEnabled(true);
 
@@ -102,4 +100,14 @@ public class AuthService {
                 .username(loginRequest.getUsername())
                 .build();
     }
+
+    @Transactional(readOnly = true)
+	public User getCurrentUser() {
+		org.springframework.security.core.userdetails.User principal = (org.springframework.security.core.userdetails.User) SecurityContextHolder
+                .getContext().getAuthentication().getPrincipal();
+        String username = principal.getUsername();
+
+        return userRepository.findByUsername(username)
+                .orElseThrow(() -> new RedditCloneException("No user found with name "+username));
+	}
 }

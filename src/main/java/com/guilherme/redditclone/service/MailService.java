@@ -2,7 +2,7 @@ package com.guilherme.redditclone.service;
 
 import javax.mail.internet.MimeMessage;
 
-import com.guilherme.redditclone.exception.SpringRedditException;
+import com.guilherme.redditclone.exception.RedditCloneException;
 import com.guilherme.redditclone.model.NotificationEmail;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -41,7 +41,7 @@ public class MailService {
             log.info("Activation email sent!");
         }catch(MailException e){
             log.error("Exception occurred when sending mail", e);
-            throw new SpringRedditException("Exception occurred when sending mail to " + notificationEmail.getRecipient(), e);
+            throw new RedditCloneException("Exception occurred when sending mail to " + notificationEmail.getRecipient(), e);
         }
     }
 }

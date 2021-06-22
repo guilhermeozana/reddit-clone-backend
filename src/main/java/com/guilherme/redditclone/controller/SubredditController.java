@@ -17,6 +17,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 
@@ -25,12 +26,12 @@ import org.springframework.web.bind.annotation.RequestBody;
 @RequestMapping("/api/subreddit")
 @RequiredArgsConstructor
 @Log4j2
-public class SubRedditController {
+public class SubredditController {
     private final SubredditService subredditService;
     
     @PostMapping
     public ResponseEntity<Subreddit> createSubreddit(@RequestBody SubredditDto subredditDto) {
-        return ResponseEntity.status(HttpStatus.CREATED).body(subredditService.save(subredditDto));
+        return ResponseEntity.status(HttpStatus.CREATED).body(subredditService.create(subredditDto));
     }
 
     @GetMapping()
@@ -38,5 +39,10 @@ public class SubRedditController {
         return ResponseEntity.status(HttpStatus.OK)
                 .body(subredditService.getAll());
     }
-    
+
+    @GetMapping("/{id}")
+    public ResponseEntity<Subreddit> getSubreddit(@PathVariable Long id){
+        return ResponseEntity.status(HttpStatus.OK)
+                .body(subredditService.getById(id));
+    }
 }
